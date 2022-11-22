@@ -1,7 +1,7 @@
 ---
-title: 'Business Continuity and Disaster Recovery (BCDR) with Azure OpenAI'
+title: 'Cross-region disaster recovery with Azure OpenAI'
 titleSuffix: Azure OpenAI
-description: Considerations for implementing Business Continuity and Disaster Recovery (BCDR) with Azure OpenAI 
+description: Cross-region disaster recovery with Azure OpenAI 
 services: cognitive-services
 manager: nitinme
 ms.service: cognitive-services
@@ -15,33 +15,30 @@ keywords:
 
 ---
 
-# Business Continuity and Disaster Recovery (BCDR) considerations with Azure OpenAI
+# Cross-region disaster recovery with Azure OpenAI
 
-The Azure OpenAI service is available in two regions. Since subscription keys are region bound, when a customer acquires a key, they select the region in which their deployments will reside and from then on, all operations stay associated with that Azure server region.  
+When you create an Azure OpenAI resource, you specify a region. From then on, your resource and all of its operations stay associated with that particular Azure server region. It's rare, but not impossible, to encounter a network issue that hits an entire region. If your service needs to always be available, then you should design it to either fail-over into another region or split the workload between two or more regions. Both approaches require at least two resources in different regions. This article provides general recommendations for how to implement cross-region disaster recovery for your Azure OpenAI applications.
 
-It's rare, but not impossible, to encounter a network issue that hits an entire region. If your service needs to always be available, then you should design it to either fail-over into another region or split the workload between two or more regions. Both approaches require at least two OpenAI resources in different regions. This article provides general recommendations for how to implement  Business Continuity and Disaster Recovery (BCDR) for your Azure OpenAI applications.
+## Business Scenario
 
-## Best practices
+If your app or business depends on the use of an Azure OpenAI model, we recommend that you create a replica of your resource in an additional supported region. If a regional outage occurs, you can then access your model in the other fail-over region where you replicated your resource. Replicating a resource means that you create another resource or finetune your model in the failover region with the same set of data.
 
-Today customers will call the endpoint provided during deployment for both deployments and inference. These operations are stateless, so no data is lost in the case that a region becomes unavailable.  
+## Prerequisites
 
-If a region is non-operational customers must take steps to ensure service continuity.
+1. Two Azure OpenAI resources in different Azure regions. 
+2. The key, endpoint URL, and subscription ID for your Azure OpenAI resources.
 
-## Business continuity
+### How to monitor service availability
 
-The following set of instructions applies both customers using default endpoints and those using custom endpoints.
-
-### Default endpoint recovery
-
-If you're using a default endpoint, you should configure your client code to monitor errors, and if the errors persist, be prepared to redirect to another region of your choice where you have an Azure OpenAI subscription.
+You should configure your client code to monitor errors, and if the errors persist, be prepared to redirect to another region of your choice where you have an Azure OpenAI subscription.
 
 Follow these steps to configure your client to monitor errors:
 
-1. Use this page to identify the list of available regions for the OpenAI service.
+1. Use this page (https://azure.microsoft.com/en-us/explore/global-infrastructure/geographies/?cdn=disable#overview) to identify the list of available regions for the Azure OpenAI service.
 
-2. Select a primary and one secondary/backup regions from the list.
+2. Select a primary and secondary/backup regions from the list.
 
-3. Create OpenAI Service resources for each region selected
+3. Create Azure OpenAI Service resources for each region selected
 
 4. For the primary region and any backup regions your code will need to know:
 
@@ -55,6 +52,6 @@ Follow these steps to configure your client to monitor errors:
 
       b. For persistence redirect traffic to the backup resource in the region you've created.
 
-## BCDR requires custom code
+## Cross-region disaster recovery requires custom code
 
 The recovery from regional failures for this usage type can be performed instantaneously and at a very low cost. This does however, require custom development of this functionality on the client side of your application.
